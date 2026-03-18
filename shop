@@ -1,0 +1,63 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ShopManager : MonoBehaviour
+{
+    public GameObject leftPart, rightPart, blankPart;
+
+    public GameObject[] parts;
+    Color originalColor;
+    public GameManager gameManager;
+
+    private void Start()
+    {
+        originalColor = parts[0].GetComponent<Image>().color;
+    }
+
+    public void SelectPart(int index)
+    {
+        //선택된 파츠가 사용중이지 않을 떄
+        if (parts[index].GetComponent<Image>().color != Color.red)
+        {
+            if (leftPart.transform.GetChild(1).GetComponent<Text>().text == "")
+            {
+                leftPart.transform.GetChild(0).GetComponent<Image>().sprite = parts[index].transform.GetChild(0).GetComponent<Image>().sprite;
+                leftPart.transform.GetChild(1).GetComponent<Text>().text = parts[index].transform.GetChild(1).GetComponent<Text>().text;
+
+                parts[index].GetComponent<Image>().color = Color.red;
+                gameManager.leftPartNo = index;
+                Debug.Log("왼쪽 파트 " + index + " 번 파츠 장착");
+            }
+            else if (rightPart.transform.GetChild(1).GetComponent<Text>().text == "")
+            {
+                rightPart.transform.GetChild(0).GetComponent<Image>().sprite = parts[index].transform.GetChild(0).GetComponent<Image>().sprite;
+                rightPart.transform.GetChild(1).GetComponent<Text>().text = parts[index].transform.GetChild(1).GetComponent<Text>().text;
+
+                parts[index].GetComponent<Image>().color = Color.red;
+                gameManager.rightPartNo = index;
+                Debug.Log("오른쪽 파트 " + index + " 번 파츠 장착");
+            }
+        }
+        else  //선택된 파츠가 사용중일 떄
+        {
+            if (leftPart.transform.GetChild(0).GetComponent<Image>().sprite == parts[index].transform.GetChild(0).GetComponent<Image>().sprite)
+            {
+                leftPart.transform.GetChild(0).GetComponent<Image>().sprite = null;
+                leftPart.transform.GetChild(1).GetComponent<Text>().text = "";
+
+                parts[index].GetComponent<Image>().color = originalColor;
+                gameManager.leftPartNo = 0;
+                Debug.Log("왼쪽 파트 " + index + " 번 파츠 장착 해제");
+            }
+            else if (rightPart.transform.GetChild(0).GetComponent<Image>().sprite == parts[index].transform.GetChild(0).GetComponent<Image>().sprite)
+            {
+                rightPart.transform.GetChild(0).GetComponent<Image>().sprite = null;
+                rightPart.transform.GetChild(1).GetComponent<Text>().text = "";
+
+                parts[index].GetComponent<Image>().color = originalColor;
+                gameManager.rightPartNo = 0;
+                Debug.Log("오른쪽 파트 " + index + " 번 파츠 장착 해제");
+            }
+        }
+    }
+}
