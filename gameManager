@@ -1,0 +1,162 @@
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+public int leftPartNo, rightPartNo;
+public Button buybutton1;
+public Button buybutton2;
+public Button buybutton3;
+public Button buybutton4;
+
+public GameObject equipped1;
+public GameObject equipped2;
+public GameObject equipped3;
+public GameObject equipped4;
+
+public Text cheatText;
+public GameObject showmessage1;
+
+public player pl;
+
+public int money = 0;
+public int price1 = 100;
+public int price2 = 100;
+public int price3 = 100;
+public int price4 = 100;
+
+
+
+public TextMeshProUGUI moneytext;
+public TextMeshProUGUI timerText;
+float time;
+bool isGamerunning;
+
+
+// Start is called once before the first execution of Update after the MonoBehaviour is created
+void Start()
+{
+    buybutton1.onClick.AddListener(buy1);
+    buybutton2.onClick.AddListener(buy2);
+    buybutton3.onClick.AddListener(buy3);
+    buybutton4.onClick.AddListener(buy4);
+
+    
+}
+
+
+// Update is called once per frame
+void Update()
+{
+    moneytext.text = money.ToString();
+
+    if (Input.GetKeyDown(KeyCode.F4))
+    {
+        showmessage1.gameObject.SetActive(true);
+        cheatText.text = "치트 1 돈 1000원 추가";
+
+        money += 1000;
+
+        StartCoroutine(MyCoroutine());
+    }
+    if (isGamerunning)
+    {
+        time += Time.deltaTime;
+
+        timerText.text = "Time : " + time.ToString("F1");
+
+    }
+
+}
+
+public void StartGame()
+{
+    time = 0f;
+    isGamerunning = true;
+}
+
+public void EndGame()
+{
+    time = 0f;
+    isGamerunning = false;
+}
+
+IEnumerator MyCoroutine()
+{
+    yield return new WaitForSeconds(3f);
+
+    showmessage1.SetActive(false); // 3초 후 메시지 끄기
+}
+
+
+
+public void buy1()   
+{
+    
+    
+
+    if (money >= price1)
+    {
+        money -= price1;
+   
+        buybutton1.interactable = false;
+
+        Debug.Log("구매완료");
+        equipped1.SetActive(true);
+    }
+    else
+    {
+        Debug.Log("돈 부족");
+    }
+}
+
+public void buy2()
+{
+    if (money >= price2)
+    {
+        money -= price2;
+ 
+        buybutton2.interactable = false;
+        equipped2.SetActive(true);
+        Debug.Log("구매완료");
+    }
+    else
+    {
+        Debug.Log("돈 부족");
+    }
+}
+
+public void buy3()
+{
+    if (money >= price3)
+    {
+        money -= price3;
+       
+        buybutton3.interactable = false;
+
+        Debug.Log("구매완료");
+        equipped3.SetActive(true);
+    }
+    else
+    {
+        Debug.Log("돈 부족");
+    }
+}
+
+public void buy4()
+{
+    if (money >= price4)
+    {
+        money -= price4;
+      
+        buybutton4.interactable = false;
+
+        Debug.Log("구매완료");
+        equipped4.SetActive(true);
+    }
+    else
+    {   
+        Debug.Log("돈 부족");
+    }
+}
+
+}
