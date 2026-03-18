@@ -1,0 +1,117 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+
+
+public class player : MonoBehaviour
+{
+    public float speed = 4.0f;
+    public float rotateSpeed = 90.0f;
+    public float HP = 100f;
+    public float maxHP = 100f;
+    public Slider Hpslider;
+
+    private Rigidbody rb;
+    public bool isGround;
+    public bool isReturning = false;
+    public GameObject GameOverText;
+    public GameObject ingame1;
+    public GameObject ingame2;
+    public GameObject ingame3;
+    public GameObject ingame;
+    
+     
+
+    public TextMeshProUGUI Hpbar;
+    
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        
+        GameOverText.gameObject.SetActive(false);
+
+        Hpslider.maxValue = maxHP;
+        Hpslider.value = HP;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        float move = Input.GetAxis("Vertical");
+        float rotate = Input.GetAxis("Horizontal");
+        
+        transform.Translate(Vector3.forward * move * speed * Time.deltaTime);
+        transform.Rotate(Vector3.up * rotate * rotateSpeed * Time.deltaTime);
+
+        Hpbar.text = HP + " / " + maxHP;
+        Did();
+        Hpslider.value = HP;
+
+        if (!isGround && !isReturning)
+        {
+            StartCoroutine(ReturnCenter());
+        }
+
+    }
+
+    IEnumerator ReturnCenter()
+    {
+        isReturning = true;
+
+        yield return new WaitForSeconds(3f);
+
+        if (!isGround)
+        {
+            transform.position = Vector3.zero; // 중앙으로 이동
+            rb.linearVelocity.Set(0, 0, 0); // 벨로시티 y 초기화
+        }
+
+        isReturning = false;
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        HP -= damage;
+
+        if (HP < 0)
+        {
+            HP = 0;
+        }
+    }
+
+    public void Did()
+    {
+        if (HP <= 0)
+        {
+            GameOverText.gameObject.SetActive(true);
+            ingame1.SetActive(false);
+            ingame2.SetActive(false);
+            ingame3.SetActive(false);
+            ingame.SetActive(false);
+            HP = maxHP;
+            gameObject.SetActive(false); 
+        }
+    }
+
+    
+
+    
+}
