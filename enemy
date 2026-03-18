@@ -1,0 +1,243 @@
+using JetBrains.Annotations;
+using System.Collections;
+using System.Reflection;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class enemy : MonoBehaviour
+{
+    public GameObject missilePrefab;
+    public Transform firePoint;
+    public Transform player;
+
+    public float shootCooldown = 2f;
+    float shootTimer = 0f;
+    bool isGround;
+    bool isReturning = false;
+    public float detectDistance = 100f;
+
+    public ShootType shootType;
+    public int HP = 10;
+
+    bool isShooting = false;
+    
+    public float singleSpeed = 5f;
+    public float tripleSpeed = 5f;
+    public float shotgunSpeed = 6f;
+    public float speedgunSpeed = 30f;
+    public float PredictBomb = 3f;
+    public enum ShootType
+    {
+        Single,
+        Triple,
+        Shotgun,
+        Speedgun,
+        PredictBomb
+    }
+    private void Start()
+    {
+        Rigidbody playerRb = player.GetComponent<Rigidbody>();
+        Vector3 platerVelocity = playerRb.linearVelocity;
+    }
+    void Update()
+    {
+        if (player == null) return;
+
+        float dist = Vector3.Distance(transform.position, player.position);
+
+        shootTimer -= Time.deltaTime;   // ← 여기로 이동
+
+        if (dist < detectDistance)
+        {
+            Vector3 lookPos = player.position - transform.position;
+            lookPos.y = 0;
+
+            Quaternion rot = Quaternion.LookRotation(lookPos);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rot, 3f * Time.deltaTime);
+
+            if (shootTimer <= 0 && !isShooting)
+            {
+                Shoot();
+                shootTimer = shootCooldown;
+            }
+        }
+
+        GroundCheck();
+    }
+
+    public void GroundCheck()
+    {
+        if (!isGround && !isReturning)
+        {
+            StartCoroutine(ReturnCenter());
+        }
+    }
+
+    IEnumerator ReturnCenter()
+    {
+        isReturning = true;
+
+        yield return new WaitForSeconds(3f);
+
+        if (!isGround)
+        {
+            transform.position = Vector3.zero; // 중앙으로 이동
+        }
+
+        isReturning = false;
+    }
+
+    void Shoot()
+    {
+        if (missilePrefab == null || firePoint == null) return;
+
+        switch (shootType)
+        {
+            case ShootType.Single:
+                ShootSingle();
+                break;
+
+            case ShootType.Triple:
+                StartCoroutine(ShootTriple());
+                break;
+
+            case ShootType.Shotgun:
+                ShootShotgun();
+                break;
+            case ShootType.Speedgun:
+                StartCoroutine(ShootSpeedgun());
+                break;
+            case ShootType.PredictBomb:
+                ShootPredictBomb();
+                break;
+        }
+    }
+
+    void ShootSingle()
+    {
+        GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
+
+        HomingMissile hm = missile.GetComponent<HomingMissile>();
+        if (hm != null)
+        {
+            
+            hm.speed = singleSpeed;
+            hm.target = player;
+        }
+        HP = 10;
+    }
+
+    IEnumerator ShootTriple()
+    {
+        isShooting = true;
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
+
+            HomingMissile hm = missile.GetComponent<HomingMissile>();
+            if (hm != null)
+            {
+                hm.speed = tripleSpeed;
+                hm.target = player;
+            }
+
+            yield return new WaitForSeconds(0.3f);
+        }
+        HP = 20;
+        isShooting = false;
+    }
+
+    void ShootShotgun()
+    {
+        int bulletCount = 5;
+        float spread = 100f;
+
+        for (int i = 0; i < bulletCount; i++)
+        {
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+
+            HomingMissile hm = missile.GetComponent<HomingMissile>();
+            if (hm != null)
+            {
+                
+                hm.speed = shotgunSpeed;
+                hm.target = player;
+            }
+            HP = 30;
+        }
+    }
+
+    IEnumerator ShootSpeedgun()
+    {
+        isShooting = true;
+
+        yield return new WaitForSeconds(1.5f);
+
+        GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
+
+        HomingMissile hm = missile.GetComponent<HomingMissile>();
+        if (hm != null)
+        {
+            hm.speed = speedgunSpeed;
+            hm.rotateSpeed = 0f;
+        }
+        HP = 10;
+        isShooting = false;
+    }
+
+    void ShootPredictBomb()
+    {
+        Rigidbody playerRb = player.GetComponent<Rigidbody>();
+
+        Vector3 playerVelocity = playerRb.linearVelocity;
+
+        float timeToTarget = Vector3.Distance(transform.position, player.position) / 3f;
+
+        Vector3 predictedPos = player.position + playerVelocity * timeToTarget;
+
+        GameObject bomb = Instantiate(missilePrefab, firePoint.position, Quaternion.identity);
+
+        Rigidbody rb = bomb.GetComponent<Rigidbody>();
+
+        Vector3 dir = predictedPos - firePoint.position;
+        dir.y += 5f;
+
+        rb.AddForce(dir, ForceMode.VelocityChange);
+
+        HP = 20;
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
+        }
+    }
+    public void TakeDamage(int Damage)
+    {
+        HP -= Damage;
+
+        if (HP <= 0)
+        {
+            Die();
+        }
+    }
+    void Die()
+    {
+        Destroy(gameObject);
+    }
+}
