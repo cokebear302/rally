@@ -4,6 +4,7 @@ using System.Reflection;
 using Unity.VisualScripting;
 using UnityEngine;
 
+
 public class enemy : MonoBehaviour
 {
     public GameObject missilePrefab;
@@ -20,11 +21,11 @@ public class enemy : MonoBehaviour
     public int HP = 10;
 
     bool isShooting = false;
-    
-    public float singleSpeed = 5f;
-    public float tripleSpeed = 5f;
-    public float shotgunSpeed = 6f;
-    public float speedgunSpeed = 30f;
+
+    public float singleSpeed = 3f;
+    public float tripleSpeed = 3f;
+    public float shotgunSpeed = 3f;
+    public float speedgunSpeed = 10f;
     public float PredictBomb = 3f;
     public enum ShootType
     {
@@ -120,7 +121,7 @@ public class enemy : MonoBehaviour
         HomingMissile hm = missile.GetComponent<HomingMissile>();
         if (hm != null)
         {
-            
+
             hm.speed = singleSpeed;
             hm.target = player;
         }
@@ -164,7 +165,7 @@ public class enemy : MonoBehaviour
             HomingMissile hm = missile.GetComponent<HomingMissile>();
             if (hm != null)
             {
-                
+
                 hm.speed = shotgunSpeed;
                 hm.target = player;
             }
