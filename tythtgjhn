@@ -1,0 +1,349 @@
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI.Table;
+
+
+public class Boss : MonoBehaviour
+{
+    public Transform Player;
+    public float bossHp = 30;
+
+   
+
+    Rigidbody rb;
+    public shootType ShootType;
+
+    public GameObject missilePrefab;
+    public Transform firePoint;
+
+    public float bossSpeed1;
+    public float bossSpeed2;
+    public float bossSpeed3;
+
+    public bool unlook2 = false;
+    public bool unlook3 = false;
+
+    public float bulletSpeed = 5f;
+    public float shootTimer = 2f;   
+    private float detectDistance = 100f;
+    private bool isShooting = false;
+
+    public bool isGround = false;
+    public float shootCooldown = 6f;
+
+    
+    public GameObject setbulletPrefab;
+
+    //rank
+
+    public float Score = 10000;
+
+    public TextMeshProUGUI ScoreText;
+
+    public float a;
+
+    public float rankScore1 = 0;
+    public float rankScore2 = 0;    
+    public float rankScore3 = 0;
+    public float rankScore4 = 0;
+    public float rankScore5 = 0;
+
+    public TextMeshProUGUI rank1;
+    public TextMeshProUGUI rank2;
+    public TextMeshProUGUI rank3;
+    public TextMeshProUGUI rank4;
+    public TextMeshProUGUI rank5;
+
+
+
+    public enum shootType
+    {
+        Boss1,
+        Boss2,
+        Boss3
+
+    }
+    public void Shoot()
+    {
+        if (missilePrefab == null || firePoint == null) return;
+
+        switch (ShootType)
+        {
+            case shootType.Boss1:
+                StartCoroutine(boss1());
+                
+                break;
+            case shootType.Boss2:
+                StartCoroutine(boss2());
+                
+                break;
+            case shootType.Boss3:
+                StartCoroutine(boss3());
+
+                break;
+        }
+    }
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        //Player = GameObject.FindGameObjectWithTag("Player").gameObject.transform;
+        GameObject p = GameObject.Find("Player");
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        Score -= Time.deltaTime * 50;
+        if(ScoreText != null)
+        {
+            ScoreText.text = Score.ToString();
+        }
+
+
+        Die();
+
+        if (Player == null) return;
+
+        float dist = Vector3.Distance(transform.position, Player.position);
+
+        shootTimer -= Time.deltaTime;
+
+        if (dist < detectDistance)
+        {
+            Vector3 lookPos = Player.position - transform.position;
+            lookPos.y = 0;
+
+            Quaternion rot = Quaternion.LookRotation(lookPos);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rot, 3f * Time.deltaTime);
+
+            if (shootTimer <= 0 && !isShooting)
+            {
+                Shoot();
+                shootTimer = shootCooldown;
+            }
+
+        }
+        if (isGround == false)
+        {
+            groundCheck();
+        }
+        
+        
+        
+        
+    }
+    IEnumerator boss1()
+    {
+        isShooting = true;
+        int bulletCount = 60;
+        float spread = 250f;
+        
+        
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+            
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.05f);
+
+        }
+
+        
+
+        if (bossHp <= 0)
+        {
+            unlook2 = true;
+        }
+
+        isShooting = false;
+        
+    }
+    IEnumerator boss2()
+    {
+        isShooting = true;
+        int bulletCount = 30;
+        float spread = 250f;
+        
+        
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.01f);
+
+        }
+
+        for (int i = 0;i < bulletCount;i++)
+        {
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 1f;
+                m.speed = 2f;
+                m.target = Player;
+
+            }
+            yield return new WaitForSeconds(0.1f);
+        }
+        isShooting = false;
+
+        
+
+        if (bossHp <= 0)
+        {
+            unlook3 = true;
+        }
+
+    }
+    IEnumerator boss3()
+    {
+        isShooting = true;
+        int bulletCount = 600;
+        float spread = 260f;
+        
+        
+
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.0001f);           
+
+        }
+        isShooting = false;
+        
+    }
+
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            bossHp -= 10;
+            
+        }
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+
+   
+
+    
+    public void takeDemge(float damge)
+    {
+        bossHp -= damge;
+        
+        if (bossHp <= 0)
+        {
+            bossHp = 0;
+        }
+    }
+
+    public void Die()
+    {
+        if (bossHp == 0)
+        {
+
+            
+            Player p = GetComponent<Player>();
+            a += Score;
+
+            Destroy(gameObject);
+            p.Hp = p.MaxHp;
+            Score = 10000;
+        }
+    }
+
+    public void Scores()
+    {
+        if (rankScore1 < a)
+        {
+            rank1.text = a.ToString();
+        }
+        if (rankScore2 < a)
+        {
+            rank2.text = a.ToString();
+        }
+        if (rankScore3 < a)
+        {
+            rank3.text = a.ToString();
+        }
+        if (rankScore4 < a)
+        {
+            rank4.text = a.ToString();
+        }
+        if (rankScore5 < a)
+        {
+            rank5.text = a.ToString();
+        }
+    }
+
+    public void groundCheck()
+    {
+        StartCoroutine(GroundCheck());
+    }
+
+    IEnumerator GroundCheck()
+    {
+        yield return new WaitForSeconds(3f);
+        if (isGround == false)
+        {
+            transform.position = new Vector3(0, 0.5f, 0);
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
+            
+            
+        }
+
+    }
+
+    
+
+    
+}
