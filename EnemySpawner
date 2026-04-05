@@ -1,0 +1,165 @@
+public class enemySpowner : MonoBehaviour
+{
+    public Transform Player;
+    public Transform Enemy;
+
+    public GameObject Enemy1;
+    public GameObject Enemy2;
+    public GameObject Enemy3;
+
+    public bool bossSpawned = false;
+    public GameObject BossSpawnImage;
+
+    public int enemyCount1 = 1;
+    public int enemyCount2 = 1;
+    public int enemyCount3 = 1;
+    
+
+    public float minX = -5f;
+    public float maxX = 5f;
+    public float minZ = -5f;
+    public float maxZ = 5f;
+
+    public float safeZon = 2;
+    public float enemyZon = 2;
+
+    public GameObject Boss1;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+        InvokeRepeating("Spawn", 0, 60);
+        if(Player == null)
+        {
+            Player = GameObject.FindGameObjectWithTag("Player").transform;
+        }
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+
+        bossCheck();
+    }
+    
+    public void Spawn()
+    {
+        for (int i = 0; i < enemyCount1; i++)
+            spawnEnemy(Enemy1);
+        for (int i = 0; i < enemyCount2; i++)
+            spawnEnemy(Enemy2);
+        for (int i = 0; i  < enemyCount3; i++)
+            spawnEnemy(Enemy3); 
+        
+            
+    }
+    public void bossCheck()
+    {
+        if (bossSpawned) return;
+
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        if (enemies.Length == 0)
+        {
+            StartCoroutine(bossSpawn());
+            bossSpawned = true;
+        }
+    }
+
+    IEnumerator bossSpawn()
+    {
+        BossSpawnImage.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        BossSpawnImage.SetActive(false);
+        yield return new WaitForSeconds(1f);
+        for (int i = 0; i < enemyCount1; i++)
+            spawnBoss(Boss1);
+    }
+
+    public void spawnEnemy(GameObject enemy)
+    {
+        Debug.Log("enemy spawn");
+        Vector3 spawnPos;
+        while (true)
+        {
+            float randomX = Random.Range(minX, maxX);
+            float randomZ = Random.Range(minZ, maxZ);
+
+            spawnPos = new Vector3(randomX, 1, randomZ );
+
+            if (Vector3.Distance(spawnPos, Player.position) < safeZon)
+                continue;
+
+            bool tooClose = false;
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+            foreach (GameObject e in enemies)
+            {
+                if (Vector3.Distance(spawnPos, e.transform.position) < enemyZon)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (!tooClose)
+                break;
+
+        }
+
+        GameObject newEnemy = Instantiate(enemy, spawnPos, Quaternion.identity);
+
+        Enemy eScript = newEnemy.GetComponent<Enemy>();
+        eScript.Player = Player;
+
+        newEnemy.transform.LookAt(Player);
+    }
+    public void spawnBoss(GameObject boss1)
+    {
+        Vector3 spawnPos;
+
+        while (true)
+        {
+            float randomX = Random.Range(minX, maxX);
+            float randomZ = Random.Range(minZ, maxZ);
+
+            spawnPos = new Vector3(randomX, 1, randomZ);
+
+            if (Vector3.Distance(spawnPos, Player.position) < safeZon)
+                continue;
+
+            bool tooClose = false;
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+            foreach (GameObject e in enemies)
+            {
+                if (Vector3.Distance(spawnPos, e.transform.position) < enemyZon)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (!tooClose)
+                break;
+
+        }
+
+        GameObject newEnemy = Instantiate(boss1, spawnPos, Quaternion.identity);
+
+        Enemy eScript = newEnemy.GetComponent<Enemy>();
+        if (eScript != null)
+        {
+            eScript.Player = Player;
+        }
+
+        newEnemy.transform.LookAt(Player);
+    }
+    
+
+
+    
+
+}
