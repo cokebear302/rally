@@ -1,162 +1,646 @@
-using UnityEngine;
-
 public class GameManager : MonoBehaviour
 {
-public int leftPartNo, rightPartNo;
-public Button buybutton1;
-public Button buybutton2;
-public Button buybutton3;
-public Button buybutton4;
 
-public GameObject equipped1;
-public GameObject equipped2;
-public GameObject equipped3;
-public GameObject equipped4;
+    Animator animator;
+    public static GameManager Instance;
+    public Player p;
+    public GameObject player;
+    public GameObject Nickname;
+    public GameObject Main;
+    public GameObject inGame;
+    public GameObject outGame;
 
-public Text cheatText;
-public GameObject showmessage1;
+    public bool isTime = false;
 
-public player pl;
+    public int leftPartNo, rightPartNo;
 
-public int money = 0;
-public int price1 = 100;
-public int price2 = 100;
-public int price3 = 100;
-public int price4 = 100;
+    public TextMeshProUGUI moneyText;
+
+    public bool onInf = false;
+    public bool onblackHoll = false;
+    public bool onSlow = false;
+    public bool ontimeStop = false;
+    public bool onShild = false;
+
+    public GameObject setA1;
+    public GameObject setA2;
+    public GameObject setA3;
+    public GameObject setA4;
+    public GameObject setA5;
+
+    public GameObject Stage1;
+    public GameObject Stage2;
+    public GameObject Stage3;
+    // 모든 적 삭제
+    public GameObject AllDestory;
+    public bool enemyDie = false;
+    public bool bossDie = false;
+    // 모든 적 삭제
+    public GameObject Inf;
+    public GameObject blackHoll;
+    public GameObject Slow;
+    public GameObject timeStop;
+    public GameObject Shild;
+    //사운드
+    public AudioSource audioSource;
+    public List<AudioClip> clip;
+    //0 = 구매불가
+    //1 = 구매완료
+    //2 = none
+    //3 = 회복
+    //4 = none
+    //사운드
+    public float Money = 0;
+    public float Score = 0;
+    public float a = 0;
+    public TextMeshProUGUI ScoreText;
+
+    public int bomb = 2;
+    int Maxbomb = 2;
+    public bool useBomb = false;
+    public Text BombText;
+    public GameObject BombEffect;
+
+    public int Hppotion = 2;
+    int MaxHppotion;
+    public Text HppotionText;
+    public GameObject HppotionEffect;
+    public bool Heal = false;
+
+    public int Infitem = 2;
+    public int MaxInfitem = 2;
+    public Text InfText;
 
 
+    public TextMeshProUGUI GameClearMessage;
+    public GameObject GameClearPanel;
 
-public TextMeshProUGUI moneytext;
-public TextMeshProUGUI timerText;
-float time;
-bool isGamerunning;
+    public bool debugMode = false;
+    public bool enemyallKill = false;
+    public bool cantakeDamage = false;
+    public GameObject showMessage;
+    public Text cheatText;
+    public Text cheatText2;
+
+    public bool stage2unlock = false;
+    public bool stage3unlock = false;
+
+    public GameObject unlock1;
+    public GameObject unlock2;
+
+    public float rankScore1 = 10000;
+    public float rankScore2 = 10000;
+    public float rankScore3 = 10000;
+    public float rankScore4 = 10000;
+    public float rankScore5 = 10000;
+
+    public TextMeshProUGUI rank1;
+    public TextMeshProUGUI rank2;
+    public TextMeshProUGUI rank3;
+    public TextMeshProUGUI rank4;
+    public TextMeshProUGUI rank5;
 
 
-// Start is called once before the first execution of Update after the MonoBehaviour is created
-void Start()
-{
-    buybutton1.onClick.AddListener(buy1);
-    buybutton2.onClick.AddListener(buy2);
-    buybutton3.onClick.AddListener(buy3);
-    buybutton4.onClick.AddListener(buy4);
+    public bool inff = false;
 
-    
-}
+    public string Name;
 
-
-// Update is called once per frame
-void Update()
-{
-    moneytext.text = money.ToString();
-
-    if (Input.GetKeyDown(KeyCode.F4))
+    private void Awake()
     {
-        showmessage1.gameObject.SetActive(true);
-        cheatText.text = "치트 1 돈 1000원 추가";
-
-        money += 1000;
-
-        StartCoroutine(MyCoroutine());
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
-    if (isGamerunning)
+    private void Start()
     {
-        time += Time.deltaTime;
-
-        timerText.text = "Time : " + time.ToString("F1");
+        cantakeDamage = false;
+        
 
     }
 
-}
-
-public void StartGame()
-{
-    time = 0f;
-    isGamerunning = true;
-}
-
-public void EndGame()
-{
-    time = 0f;
-    isGamerunning = false;
-}
-
-IEnumerator MyCoroutine()
-{
-    yield return new WaitForSeconds(3f);
-
-    showmessage1.SetActive(false); // 3초 후 메시지 끄기
-}
-
-
-
-public void buy1()   
-{
-    
+    [ContextMenu("test")]
     
 
-    if (money >= price1)
+    private void Update()
     {
-        money -= price1;
+
+        if (isTime == true)
+        {
+        Score += Time.deltaTime;
+        ScoreText.text = Mathf.FloorToInt(Score / 60).ToString() + ":" + Mathf.FloorToInt(Score % 60).ToString();
+        }
+
+        moneyText.text = Money.ToString();
+        if (Input.GetKeyDown(KeyCode.F6))
+        {
+            debugMode = true;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F7))
+        {
+            debugMode = false;
+        }
+
+        // 디버그 모드일 때만 실행
+
+        if (Input.GetKeyDown(KeyCode.F8))
+        {
+            Debug.Log("치트 2 ON");
+            cantakeDamage = true;
+            cheatText.text = "치트 2";
+            cheatText2.text = "플레이어 피격 면역 상태 ON";
+            StartCoroutine(messageInfo());
+        }
+        if (Input.GetKeyDown(KeyCode.F9))
+        {
+            Debug.Log("치트 2 OFF");
+            cantakeDamage = false;
+            cheatText.text = "치트 2";
+            cheatText2.text = "플레이어 피격 면역 상태 OFF";
+            StartCoroutine(messageInfo());
+        }
+        if (Input.GetKeyDown(KeyCode.F10))
+        {
+            enemyallKill = true;
+            Debug.Log("치트 3");
+            cheatText.text = "치트 3";
+            cheatText2.text = "강제 적 사망";
+            StartCoroutine(messageInfo());
+
+        }
+        if (Input.GetKeyDown(KeyCode.F11))
+        {
+            Player p = GetComponent<Player>();
+            Debug.Log("치트 4");
+            cheatText.text = "치트 4";
+            cheatText2.text = "1000 파편(골드) 획득";
+            Money += 1000;
+            StartCoroutine(messageInfo());
+        }
+
+        // 파츠 스킬
+
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            if (onInf == true)
+            {
+                StartCoroutine(Myskill());
+            }
+
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            if (onblackHoll == true)
+            {
+                StartCoroutine(Myskil2());
+
+            }
+
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+
+            if (onSlow == true)
+            {
+                StartCoroutine(Myskill3());
+            }
+
+        }
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            if (ontimeStop == true)
+            {
+                StartCoroutine(Myskill4());
+            }
+
+        }
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            if (onShild == true)
+            {
+                StartCoroutine(Myskill5());
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (Hppotion >= 1)
+            {
+                useItemHpPotion();
+                Hppotion -= 1;
+                HppotionEffect.SetActive(true);
+                audioSource.clip = clip[3];
+                audioSource.Play();
+            }
+            else
+            {
+                cheatText.text = "회복 포션";
+                cheatText2.text = "회복 포션의 갯수가 부족합니다";
+                StartCoroutine(messageInfo());
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            if (bomb >= 1)
+            {
+                useBomb = true;
+                BombText.text = "폭탄 - " + bomb.ToString();
+                bomb -= 1;
+                BombEffect.gameObject.SetActive(true);
+                StartCoroutine(BombCount());
+            }
+            else
+            {
+                cheatText.text = "폭탄";
+                cheatText2.text = "소지한 폭탄 아이템의 갯수가 부족합니다";
+                StartCoroutine(messageInfo());
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (Infitem >= 1)
+            {
+
+                StartCoroutine(INF());
+                Infitem -= 1;
+                InfText.text = "HP물약 - " + Infitem.ToString();
+            }
+            else
+            {
+                cheatText.text = "무적";
+                cheatText2.text = "소지한 무적 아이템의 갯수가 부족합니다";
+                StartCoroutine(messageInfo());
+            }
+        }
+    } 
+    public void useItemHpPotion()
+    {
+        p.Hp += 50;
+        HppotionText.text = "HP물약 - " + Hppotion.ToString();
+        if (p.Hp > p.MaxHp)
+        {
+            p.Hp = p.MaxHp;
+
+        }
+    }
+    IEnumerator INF()
+    {
+        Inf.SetActive(true);
+        skillInf();
+        yield return new WaitForSeconds(3f);
+        Inf.SetActive(false);
+    }
+    IEnumerator HppotionCount()
+    {
+        yield return new WaitForSeconds(0.5f);
+        HppotionEffect.SetActive(false);
+    }
+    IEnumerator BombCount()
+    {
+        yield return new WaitForSeconds(0.5f);
+        useBomb = false;
+        BombEffect.SetActive(false);
+    }
+    
+    
+    
+    
+
+    IEnumerator messageInfo()
+    {
+        showMessage.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        enemyallKill = false;
+        yield return new WaitForSeconds(1f);
+        showMessage.SetActive(false);
+        
+    }
+
+    
+
+    IEnumerator Myskill()
+    {
+        Debug.Log("스킬1");
+        Inf.SetActive(true);
+        skillInf();
+        yield return new WaitForSeconds(3f);
+        Inf.SetActive(false);
+    }
+    IEnumerator Myskil2()
+    {
+        Debug.Log("스킬2");
+        blackHoll.SetActive(true);
+        skillblackHoll();
+        yield return new WaitForSeconds(3f);
+
+        blackHoll.SetActive(false);
+    }
+    IEnumerator Myskill3()
+    {
+        Debug.Log("스킬3");
+        Slow.SetActive(true);
+        skillSlow();
+        yield return new WaitForSeconds(3f);
+
+        Slow.SetActive(false);
+    }
+    IEnumerator Myskill4()
+    {
+        Debug.Log("스킬4");
+        timeStop.SetActive(true);
+        skilltimeStop();
+        yield return null;
+
+    }
+    IEnumerator Myskill5()
+    {
+        Debug.Log("스킬5");
+        Shild.SetActive(true);
+        skillShild();
+        yield return new WaitForSeconds(3f);
+
+        Shild.SetActive(false);
+    }
+
+    public void skillInf()
+    {
+        inff = true;
+    }
+    public void skillblackHoll()
+    {
+        Instantiate(blackHoll,player.transform.position,Quaternion.identity);
+    }
+    public void skillSlow()
+    {
+
+    }
+    public void skilltimeStop()
+    {
+
+    }  
+    public void skillShild()
+    {
+        Shild.SetActive(true);
+    }
+
+    public void buy1()
+    {
+        if (Money >= 100)
+        {
+            Money -= 100;
+            setA1.SetActive(false);
+            onInf = true;
+            audioSource.clip = clip[1];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.clip = clip[0];
+            audioSource.Play();
+        }
+        
+    }
+    public void buy2()
+    {
+        if (Money >= 100)
+        {
+            Money -= 100;
+            setA2.SetActive(false);
+            onblackHoll = true;
+            audioSource.clip = clip[1];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.clip = clip[0];
+            audioSource.Play();
+        }
+    }
+    public void buy3()
+    {
+        if (Money >= 100)
+        {
+            Money -= 100;
+            setA3.SetActive(false);
+            onSlow = true;
+            audioSource.clip = clip[1];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.clip = clip[0];
+            audioSource.Play();
+        }
+    }
+    public void buy4()
+    {
+        if (Money >= 100)
+        {
+            Money -= 100;
+            setA4.SetActive(false);
+            ontimeStop = true;
+            audioSource.clip = clip[1];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.clip = clip[0];
+            audioSource.Play();
+        }
+    }
+    public void buy5()
+    {
+        if (Money >= 100)
+        {
+            Money -= 100;
+            setA5.SetActive(false);
+            onShild = true;
+            audioSource.clip = clip[1];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.clip = clip[0];
+            audioSource.Play();
+        }
+    }
+
+    public void inInf()
+    {
+        onInf = true;
+    }
+
+    public void inBlackHoll()
+    {
+        onblackHoll = true;
+    }
+
+    public void inSlow()
+    {
+        onSlow = true;
+    }
    
-        buybutton1.interactable = false;
-
-        Debug.Log("구매완료");
-        equipped1.SetActive(true);
-    }
-    else
+    public void intimeStop()
     {
-        Debug.Log("돈 부족");
+        ontimeStop = true;
     }
+
+    public void inShild()
+    {
+        onShild = true;
+    }
+
+    public void GameClear(Boss.shootType type)
+    {
+        StartCoroutine(ClearStageCoroutine());
+
+        if (type == Boss.shootType.Boss1)
+        {
+            a += Score;
+            GameClearMessage.text = "STAGE1-CLEAR!";
+            Score = 0;
+            Main.SetActive(true);
+            Stage1.SetActive(false);
+            isTime = false;
+            inGame.SetActive(false);
+        }
+
+        else if (type == Boss.shootType.Boss2)
+        {
+            a += Score;
+            GameClearMessage.text = "STAGE2-CLEAR!";
+            Score = 0;
+            Main.SetActive(true);
+            Stage2.SetActive(false);
+            isTime = false;
+            inGame.SetActive(false);
+        }
+            
+        else if (type == Boss.shootType.Boss3)
+        {
+            a += Score;
+            GameClearMessage.text = "STAGE3-CLEAR!";
+            Score = 0;
+            Main.SetActive(true);
+            Nickname.SetActive(true);
+            Stage3.SetActive(false);
+            
+            isTime = false;
+            inGame.SetActive(false);
+            outGame.SetActive(false);
+            Scores(a);
+        }
+  
+    }
+
+    IEnumerator ClearStageCoroutine()
+    {
+        GameClearPanel.SetActive(true);
+        yield return new WaitForSeconds(2f);
+        GameClearPanel.SetActive(false);
+    }
+
+    public void UnLockStage(Boss.shootType type)
+    {
+        if (type == Boss.shootType.Boss1)
+        {
+            stage2unlock = true;
+            if (unlock1 != null)
+            {
+                unlock1.SetActive(false);
+            }
+
+        }
+        if (type == Boss.shootType.Boss2)
+        {
+            stage3unlock = true;
+            if (unlock2 != null)
+            {
+                unlock2.SetActive(false);
+            }
+        }
+    }
+    
+    public void unlockStage1()
+    {
+        unlock1.SetActive(false);
+    }
+
+    public void unlockStage2()
+    {
+        unlock2.SetActive(false);
+    }
+    public void Scores(float Score)
+    {
+        
+
+        if (rankScore1 < Score)
+        {
+            rank1.text = " 1. " + "name: " + Name +" / Score: "+ Score.ToString();
+            
+            return;
+        }
+        if (rankScore2 < Score)
+        {
+            rank2.text = " 2. " + "name: " + Name +" / Score: "+Score.ToString();
+
+            return;
+        }
+        if (rankScore3 < Score)
+        {
+            rank3.text = " 3. " + "name: " + Name + " / Score: " + Score.ToString();
+
+            return;
+        }
+        if (rankScore4 < Score)
+        {
+            rank4.text = " 4. " + "name: " + Name + " / Score: " + Score.ToString();
+            return;
+        }
+        if (rankScore5 < Score)
+        {
+            rank1.text = " 5. " + "name: " + Name + " / Score: " + Score.ToString();
+            return;
+        }
+
+    }
+
+    public void allDeadButton()
+    {
+        StartCoroutine(allDie());
+    }
+    public void StartGame()
+    {
+        bossDie = false;
+        enemyDie = false;
+    }
+    IEnumerator allDie()
+    {
+        Missle m = GetComponent<Missle>();
+        bossDie = true;
+        enemyDie = true;
+        Destroy(m);
+        yield return new WaitForSeconds(1);
+        
+    }
+    public void EXIT()
+    {
+        Application.Quit();
+    }
+    public void HpMax()
+    {
+        p.Hp = p.MaxHp;
+    }
+
+    public void Startbutton1()
+    {
+        isTime = true;
+    }
+    
 }
 
-public void buy2()
-{
-    if (money >= price2)
-    {
-        money -= price2;
- 
-        buybutton2.interactable = false;
-        equipped2.SetActive(true);
-        Debug.Log("구매완료");
-    }
-    else
-    {
-        Debug.Log("돈 부족");
-    }
-}
-
-public void buy3()
-{
-    if (money >= price3)
-    {
-        money -= price3;
-       
-        buybutton3.interactable = false;
-
-        Debug.Log("구매완료");
-        equipped3.SetActive(true);
-    }
-    else
-    {
-        Debug.Log("돈 부족");
-    }
-}
-
-public void buy4()
-{
-    if (money >= price4)
-    {
-        money -= price4;
-      
-        buybutton4.interactable = false;
-
-        Debug.Log("구매완료");
-        equipped4.SetActive(true);
-    }
-    else
-    {   
-        Debug.Log("돈 부족");
-    }
-}
-
-}
