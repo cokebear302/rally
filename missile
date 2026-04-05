@@ -1,51 +1,77 @@
-using UnityEngine;
-
-public class HomingMissile : MonoBehaviour
+public class Missle : MonoBehaviour
 {
     public Transform target;
     public float speed = 2f;
-    public float rotateSpeed = 10f;
-    public int damage = 10;
+    public float Speed = 2f;
 
+    public float rotateSpeed = 10f;
+    public int damge = 10;
+    public bool shild = false;
 
     void Start()
     {
-        Destroy(gameObject, 10);
-
+        StartCoroutine(destoryBullet());    
     }
-
-
-
-
+    IEnumerator destoryBullet()
+    {
+        yield return new WaitForSeconds(10f);
+        Destroy(gameObject);
+    }
+    
     void Update()
     {
         if (target != null)
         {
-            Vector3 direction = (target.position - transform.position).normalized;
+            if (shild == true)
+            {
+                Vector3 direction = (transform.position - target.position).normalized;
 
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Lerp(transform.rotation, lookRotation, rotateSpeed * Time.deltaTime);
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Lerp(transform.rotation, lookRotation, rotateSpeed * Time.deltaTime);
+            }
+            else
+            {
+                Vector3 direction = (target.position - transform.position).normalized;
+
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Lerp(transform.rotation, lookRotation, rotateSpeed * Time.deltaTime);
+            }
         }
         else
         {
             target = GameObject.FindGameObjectWithTag("Player").transform;
         }
-
         transform.position += transform.forward * speed * Time.deltaTime;
+
+       
+
+        if (GameManager.Instance.useBomb == true)
+        {
+            Destroy(gameObject);
+        }
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        enemy e = other.GetComponent<enemy>();
-
-        if (e != null)
+        if (other.GetComponent<Enemy>() != null)
         {
-            e.TakeDamage(damage);
+            Enemy e = other.GetComponent<Enemy>();
+            if (e != null)
+            {
+                e.TakeDemge(damge);
+            }
         }
-        player p = other.GetComponent<player>();
-        if (p != null)
+        if (other.GetComponent<Player>() != null)
         {
-            p.TakeDamage(damage);
+            Player p =  other.GetComponent<Player>();
+            if (p != null)
+            {
+                p.TakeDemge(damge);
+            }
+        }
+        if(other.gameObject.tag == "Shild")
+        {
+            shild = true;
         }
 
         if (other.CompareTag("Player") || other.CompareTag("Enemy"))
