@@ -18,3 +18,39 @@ public class SpawnPoint : MonoBehaviour
     }
     
 }
+//////////////////////////////////////////////////////////////////////
+using System.Collections;
+using UnityEngine;
+
+public class BossSpawnPoint : MonoBehaviour
+{
+    public GameObject Boss;
+    void Start()
+    {
+        StartCoroutine(BossCheck());
+    }
+
+    IEnumerator BossCheck()
+    {
+        yield return new WaitForSeconds(1f);
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        if (enemies.Length >= 0)
+        {
+            for (int i = 0; i < 1; i++)
+                BossSpawn(Boss);
+
+        }
+    }
+
+    public void BossSpawn(GameObject boss)
+    {
+        GameObject Boss = Instantiate(boss, transform.position, transform.rotation);
+    }
+    // Update is called once per frame
+    void Update()
+    {
+        Vector3 pos = transform.position;
+
+        Boss.transform.position = pos;
+    }
+}
