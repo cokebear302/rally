@@ -1,0 +1,345 @@
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI.Table;
+
+
+public class Boss : MonoBehaviour
+{
+    public Transform Player;
+    public float bossHp = 30;
+    public bool isDead = false;
+
+    public GameObject gameClear;
+    public TextMeshProUGUI gameclearMessage;
+
+    Rigidbody rb;
+    public shootType ShootType;
+
+    public GameObject missilePrefab;
+    public Transform firePoint;
+
+    public float bossSpeed1;
+    public float bossSpeed2;
+    public float bossSpeed3;
+
+    
+
+    public bool KillTheBoss1 = false;
+    public bool KillTheBoss2 = false;
+    public bool KillTheBoss3 = false;
+    public bool unlock1 = false;
+    public bool unlock2 = false;
+
+    public float bulletSpeed = 5f;
+    public float shootTimer = 2f;   
+    private float detectDistance = 100f;
+    private bool isShooting = false;
+
+    public bool isGround = false;
+    public float shootCooldown = 2f;
+
+    
+    public GameObject setbulletPrefab;
+
+    //rank
+
+    public enum shootType
+    {
+        Boss1,
+        Boss2,
+        Boss3,
+        
+
+    }
+    public void Shoot()
+    {
+        if (missilePrefab == null || firePoint == null) return;
+
+        switch (ShootType)
+        {
+            case shootType.Boss1:
+                StartCoroutine(boss1());
+                
+                break;
+            case shootType.Boss2:
+                StartCoroutine(boss2());
+                
+                break;
+            case shootType.Boss3:
+                StartCoroutine(boss3());
+
+                break;
+            
+            
+        }
+    }
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        //Player = GameObject.FindGameObjectWithTag("Player").gameObject.transform;
+        GameObject p = GameObject.Find("Player");
+       
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (GameManager.Instance.bossDie == false)
+        {
+            gameObject.SetActive(true);
+        }
+        else if (GameManager.Instance.bossDie == true)
+        {
+            gameObject.SetActive(false);
+        }
+
+        Die();
+        
+
+        if (Player == null) 
+            Player = GameObject.Find("Player").transform;
+        
+            
+
+        float dist = Vector3.Distance(transform.position, Player.position);
+
+        shootTimer -= Time.deltaTime;
+
+        if (dist < detectDistance)
+        {
+            Vector3 lookPos = Player.position - transform.position;
+            lookPos.y = 0;
+
+            Quaternion rot = Quaternion.LookRotation(lookPos);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rot, 3f * Time.deltaTime);
+
+            if (shootTimer <= 0 && !isShooting)
+            {
+                Shoot();
+                shootTimer = shootCooldown;
+            }
+
+        }
+        if (isGround == false)
+        {
+            groundCheck();
+        }
+        
+        
+        
+        
+    }
+    IEnumerator boss1()
+    {
+        isShooting = true;
+        int bulletCount = 60;
+        float spread = 250f;
+        
+        
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+            
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.05f);
+
+        }
+
+        
+
+       
+        isShooting = false;
+        
+    }
+    IEnumerator boss2()
+    {
+        isShooting = true;
+        int bulletCount = 30;
+        float spread = 250f;
+        
+        
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)  
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.01f);
+
+        }
+
+        for (int i = 0;i < bulletCount;i++)
+        {
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 1f;
+                m.speed = 2f;
+                m.target = Player;
+
+            }
+            yield return new WaitForSeconds(0.1f);
+        }
+        isShooting = false;
+
+        
+
+       
+
+    }
+    IEnumerator boss3()
+    {
+        isShooting = true;
+        int bulletCount = 600;
+        float spread = 260f;
+        
+        
+
+        for (int i = 0; i < bulletCount; i++)
+
+        {
+
+            float angle = spread * (i - (bulletCount - 1) / 2f);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, angle, 0);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, rot);
+            Missle m = missile.GetComponent<Missle>();
+            if (m != null)
+            {
+                m.rotateSpeed = 0f;
+                m.speed = bulletSpeed;
+                m.target = Player;
+            }
+
+            yield return new WaitForSeconds(0.0003f);           
+
+        }
+        isShooting = false;
+        
+    }
+
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            bossHp -= 10;
+            
+        }
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = true;
+        }
+    }
+
+   
+
+    
+    public void takeDemge(float damge)
+    {
+        bossHp -= damge;
+        
+        if (bossHp <= 0)
+        {
+            bossHp = 0;
+            
+        }
+    }
+
+    public void Die()
+    {
+        
+        if (bossHp <= 0)
+        {
+           
+
+            if(ShootType == shootType.Boss1)
+            {
+                
+                unlock1 = true; 
+
+                GameManager.Instance.GameClear(ShootType);
+                Destroy(gameObject);
+            }
+            if(ShootType == shootType.Boss2)
+            {
+                
+                unlock2 = true;       
+
+                GameManager.Instance.GameClear(ShootType);
+                Destroy(gameObject);
+            }
+            if(ShootType == shootType.Boss3)
+            {
+
+                GameManager.Instance.GameClear(ShootType);
+                
+                Destroy(gameObject);
+            }
+            if (Player != null)
+            {
+                Player p = Player.GetComponent<Player>();
+                if (p != null)
+                    p.Hp = p.MaxHp;
+                
+                
+            }
+            GameManager.Instance.GameClear(ShootType);
+            GameManager.Instance.UnLockStage(ShootType);
+        }
+    }
+   
+
+    
+
+    public void groundCheck()
+    {
+        StartCoroutine(GroundCheck());
+    }
+
+    IEnumerator GroundCheck()
+    {
+        yield return new WaitForSeconds(3f);
+        if (isGround == false)
+        {
+            transform.position = new Vector3(0, 0.5f, 0);
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGround = false;
+            
+            
+        }
+
+    }
+
+   
+}
